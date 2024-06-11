@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.preprocessing import image
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import numpy as np
 import os
 
@@ -48,15 +49,20 @@ validation_generator = datagen.flow_from_directory(
 num_classes = len(train_generator.class_indices)
 model = tf.keras.models.Sequential([
     tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(img_height, img_width, 3)),
+    tf.keras.layers.BatchNormalization(),
     tf.keras.layers.MaxPooling2D((2, 2)),
     tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.BatchNormalization(),
     tf.keras.layers.MaxPooling2D((2, 2)),
     tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+    tf.keras.layers.BatchNormalization(),
     tf.keras.layers.MaxPooling2D((2, 2)),
     tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
+    tf.keras.layers.BatchNormalization(),
     tf.keras.layers.MaxPooling2D((2, 2)),
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(512, activation='relu'),
+    tf.keras.layers.Dropout(0.5),
     tf.keras.layers.Dense(num_classes, activation='softmax')
 ])
 
@@ -66,8 +72,9 @@ model.compile(optimizer='adam',
 
 history = model.fit(
     train_generator,
-    epochs=20,
-    validation_data=validation_generator
+    epochs=50,
+    validation_data=validation_generator,
+    callbacks=[EarlyStopping, ModelCheckpoint]
 )
 
 model.save('landscape_classifier.h5')
